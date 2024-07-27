@@ -1,0 +1,20 @@
+<?xml version='1.0' encoding='utf-8'?>
+<RDF xmlns="http://www.w3.org/1999/02/22-rdf-syntax-ns#" xmlns:em="http://www.mozilla.org/2004/em-rdf#">
+  <Description about="urn:mozilla:install-manifest">
+    <em:id>{5f6f24e5-f362-4416-92b5-b48de5ccee36}</em:id>
+    <em:name>SeaMonkey Zoom Control</em:name>
+    <em:version>1.0</em:version>
+    <em:type>2</em:type>
+    <em:creator>길고 (Original by OM)</em:creator>
+    <em:contributor>OM</em:contributor>
+    <em:description>SeaMonkey / NetScape style zoom controls in the status bar</em:description>
+    <em:targetApplication>
+      <Description>
+        <!-- Pale Moon -->
+        <em:id>{8de7fcbb-c55c-4fbe-bfc5-fc555c87dbc4}</em:id>
+        <em:minVersion>28.0</em:minVersion>
+        <em:maxVersion>33.*</em:maxVersion>
+      </Description>
+    </em:targetApplication>
+  </Description>
+</RDF>

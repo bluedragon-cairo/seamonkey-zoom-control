@@ -1,0 +1,2 @@
+content seamonkeyzoom chrome/content/
+overlay chrome://browser/content/browser.xul chrome://seamonkeyzoom/content/seamonkeyzoom.xul

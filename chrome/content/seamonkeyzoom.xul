@@ -1,0 +1,239 @@
+<?xml version="1.0"?>
+<overlay id="seamonkeyzoom_overlay"	xmlns="http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul">
+
+<script type="application/javascript"><![CDATA[
+
+  window.addEventListener("load", function(e) {
+
+    if(ZoomManager.zoomlabel_origSZFB) return;
+
+
+    const SCALE_MIN = 0.3;
+    const SCALE_MAX = 3;
+    const SCALE_STEP = 0.05;
+
+
+    var Ind1 = null, Popup1 = null, Ind2 = null, Ind3 = null, minus = null, plus = null;
+    var defZoom = -1, guiZoom = -1;
+    var lastZoom = -1, lastType = -1;
+
+
+    const DEF_ZOOM = 'browser.content.full-zoom';
+    const GUI_ZOOM = 'layout.css.devPixelsPerPx';
+
+    var cps2 = Components.classes["@mozilla.org/content-pref/service;1"].
+          getService(Components.interfaces.nsIContentPrefService2);
+
+
+    // get localized tooltip from menu.
+    var tooltip = document.getElementById('viewFullZoomMenu');
+    tooltip = (tooltip && tooltip.label) ? tooltip.label : 'Zoom';
+
+    FindButton();
+
+    ZoomManager.zoomlabel_origSZFB = ZoomManager.setZoomForBrowser;
+    ZoomManager.setZoomForBrowser = function(aBrowser, aVal) {
+      ZoomManager.zoomlabel_origSZFB(aBrowser, aVal);
+      UpdateVal1();
+    };
+
+    gBrowser.addEventListener("ZoomChangeUsingMouseWheel", function() {
+      UpdateVal1();
+    });
+
+    gBrowser.addProgressListener({ onLocationChange: function() {
+      UpdateVal1();
+    }});
+
+    document.addEventListener("aftercustomization", function() {
+      FindButton();
+
+      lastZoom = -1; lastType = -1;
+      UpdateVal1();
+    });
+
+
+    Popup1 = document.getElementById('zoomlabel-UI2');
+    Ind2   = document.getElementById('zoomlabel-UI3');
+    Ind3   = document.getElementById('zoomlabel-UI4');
+
+
+    Popup1.addEventListener("popupshowing", function() {
+
+      defZoom = 1;
+      var val = 1;
+      cps2.getGlobal(DEF_ZOOM, null, {
+        handleResult: function(pref) {
+          val = Number(pref.value);
+        },
+        handleCompletion: function(reason) { 
+          defZoom = Validate(val);
+          UpdateVal2();
+        }
+      });
+
+      guiZoom = 1;
+      if(Services.prefs.getPrefType(GUI_ZOOM) == Services.prefs.PREF_STRING) {
+        guiZoom = Validate(Number(Services.prefs.getCharPref(GUI_ZOOM)));
+      };
+      UpdateVal3();
+    });
+
+
+    Popup1.addEventListener("click", function(e) {
+      if(e.target === Ind2) {
+        defZoom = 1;
+        cps2.setGlobal(DEF_ZOOM, defZoom, null);
+        cps2.removeGlobal(DEF_ZOOM, null);
+        UpdateVal2();
+      };
+      if(e.target === Ind3) {
+        guiZoom = 1;
+        Services.prefs.setCharPref(GUI_ZOOM, '-1.0');
+        UpdateVal3();
+      };
+    });
+
+
+    Popup1.addEventListener("wheel", function(e) {
+      var plus = (e.deltaY < 0);
+
+      if(e.target === Ind2) {
+        defZoom = Validate(defZoom + ((plus) ? SCALE_STEP : -SCALE_STEP));
+        cps2.setGlobal(DEF_ZOOM, defZoom, null);
+        UpdateVal2();
+      };
+      if(e.target === Ind3) {
+        guiZoom = Validate(guiZoom + ((plus) ? SCALE_STEP : -SCALE_STEP));
+        Services.prefs.setCharPref(GUI_ZOOM, guiZoom);
+        UpdateVal3();
+      };
+    }, true);
+
+
+    function onButtonWheel(e) {
+      var plus = (e.deltaY < 0);
+      if(plus) FullZoom.enlarge(); else FullZoom.reduce();
+    };
+
+
+    function onButtonClick(e) {
+      var b = e.button;
+      if(b == 0) FullZoom.reset();
+      if(b == 1) ZoomManager.toggleZoom();
+      if(b == 2) Popup1.openPopup(Ind1, "", 0, 0, true, true, e);
+    };
+
+
+
+    UpdateVal1();
+
+
+//------------------------------------------------//
+	
+	function reduce() { FullZoom.reduce(); }
+	function enlarge() { FullZoom.enlarge(); }
+
+    function FindButton() {
+      if(Ind1) try {
+        Ind1.removeEventListener("wheel", onButtonWheel);
+        Ind1.removeEventListener("click", onButtonClick);
+      } catch(e) {};
+      Ind1 = null;
+
+      Ind1 = document.getElementById('zoomlabel-UI1');
+      if(Ind1) {
+        Ind1.tooltipText = tooltip;
+        Ind1.addEventListener("wheel", onButtonWheel);
+        Ind1.addEventListener("click", onButtonClick);
+      };
+	  
+      if(minus) try {
+        minus.removeEventListener("click", reduce);
+      } catch(e) {};
+      minus = null;
+
+      minus = document.getElementById('zoomlabel-minus');
+      if(minus) {
+        minus.addEventListener("click", reduce);
+      };
+	  
+      if(plus) try {
+        plus.removeEventListener("click", enlarge);
+      } catch(e) {};
+      plus = null;
+
+      plus = document.getElementById('zoomlabel-plus');
+      if(plus) {
+        plus.addEventListener("click", enlarge);
+      };
+    };
+
+
+    function UpdateVal1() {
+      if(!Ind1) return;
+
+      var zoom = Math.round(
+        100 * ZoomManager.getZoomForBrowser(gBrowser.selectedBrowser)
+      );
+      var type = (ZoomManager.useFullZoom) ? 1 : 0;
+
+
+      if(lastZoom != zoom) {
+        lastZoom = zoom;
+        Ind1.label = zoom + '%';
+      };
+
+      if(lastType != type) {
+        lastType = type;
+        Ind1.style.textDecoration = (type>0) ? 'none' : 'underline';
+      };
+    };
+
+
+    function UpdateVal2() {
+      Ind2.label = 'Default ' + Math.round(defZoom * 100) + '%';
+    };
+
+
+    function UpdateVal3() {
+      Ind3.label = 'Browser ' + Math.round(guiZoom * 100) + '%';
+    };
+
+
+    function Validate(val) {
+      if(isNaN(val) || val<=0) val = 1;
+      if(val < SCALE_MIN) val = SCALE_MIN;
+      if(val > SCALE_MAX) val = SCALE_MAX;
+      return(val);
+    };
+
+  });
+
+//------------------------------------------------//
+]]></script>
+
+
+  <popupset id="mainPopupSet">
+    <menupopup id="zoomlabel-UI2" position="after_start">
+      <menuitem id="zoomlabel-UI3" />
+      <menuitem id="zoomlabel-UI4" />
+    </menupopup>
+  </popupset>
+
+
+  <toolbarpalette id="BrowserToolbarPalette">
+    <toolbaritem id="zoomlabel-UI0" title="Zoom Label" class="chromeclass-toolbar-additional">
+      <button id="zoomlabel-minus" context=""
+        tooltiptext="" label="[-]"
+        style="-moz-appearance:none; min-width:0px; list-style-image:none; background:transparent; border:0px;" />
+      <button id="zoomlabel-UI1" context=""
+        tooltiptext="" label="100%"
+        style="-moz-appearance:none; text-align: center; min-width:37px; list-style-image:none; background:transparent; border:0px;" />
+      <button id="zoomlabel-plus" context=""
+        tooltiptext="" label="[+]"
+        style="-moz-appearance:none; min-width:0px; list-style-image:none; background:transparent; border:0px;" />
+    </toolbaritem>
+  </toolbarpalette>
+
+</overlay>
