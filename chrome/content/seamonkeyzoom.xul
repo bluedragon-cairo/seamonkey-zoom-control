@@ -13,7 +13,7 @@
     const SCALE_STEP = 0.05;
 
 
-    var Ind1 = null, Popup1 = null, Ind2 = null, Ind3 = null, minus = null, plus = null;
+    var Ind1 = null, minus = null, plus = null;
     var defZoom = -1, guiZoom = -1;
     var lastZoom = -1, lastType = -1;
 
@@ -53,64 +53,6 @@
     });
 
 
-    Popup1 = document.getElementById('zoomlabel-UI2');
-    Ind2   = document.getElementById('zoomlabel-UI3');
-    Ind3   = document.getElementById('zoomlabel-UI4');
-
-
-    Popup1.addEventListener("popupshowing", function() {
-
-      defZoom = 1;
-      var val = 1;
-      cps2.getGlobal(DEF_ZOOM, null, {
-        handleResult: function(pref) {
-          val = Number(pref.value);
-        },
-        handleCompletion: function(reason) { 
-          defZoom = Validate(val);
-          UpdateVal2();
-        }
-      });
-
-      guiZoom = 1;
-      if(Services.prefs.getPrefType(GUI_ZOOM) == Services.prefs.PREF_STRING) {
-        guiZoom = Validate(Number(Services.prefs.getCharPref(GUI_ZOOM)));
-      };
-      UpdateVal3();
-    });
-
-
-    Popup1.addEventListener("click", function(e) {
-      if(e.target === Ind2) {
-        defZoom = 1;
-        cps2.setGlobal(DEF_ZOOM, defZoom, null);
-        cps2.removeGlobal(DEF_ZOOM, null);
-        UpdateVal2();
-      };
-      if(e.target === Ind3) {
-        guiZoom = 1;
-        Services.prefs.setCharPref(GUI_ZOOM, '-1.0');
-        UpdateVal3();
-      };
-    });
-
-
-    Popup1.addEventListener("wheel", function(e) {
-      var plus = (e.deltaY < 0);
-
-      if(e.target === Ind2) {
-        defZoom = Validate(defZoom + ((plus) ? SCALE_STEP : -SCALE_STEP));
-        cps2.setGlobal(DEF_ZOOM, defZoom, null);
-        UpdateVal2();
-      };
-      if(e.target === Ind3) {
-        guiZoom = Validate(guiZoom + ((plus) ? SCALE_STEP : -SCALE_STEP));
-        Services.prefs.setCharPref(GUI_ZOOM, guiZoom);
-        UpdateVal3();
-      };
-    }, true);
-
-
     function onButtonWheel(e) {
       var plus = (e.deltaY < 0);
       if(plus) FullZoom.enlarge(); else FullZoom.reduce();
@@ -121,7 +63,6 @@
       var b = e.button;
       if(b == 0) FullZoom.reset();
       if(b == 1) ZoomManager.toggleZoom();
-      if(b == 2) Popup1.openPopup(Ind1, "", 0, 0, true, true, e);
     };
 
 
@@ -190,17 +131,6 @@
       };
     };
 
-
-    function UpdateVal2() {
-      Ind2.label = 'Default ' + Math.round(defZoom * 100) + '%';
-    };
-
-
-    function UpdateVal3() {
-      Ind3.label = 'Browser ' + Math.round(guiZoom * 100) + '%';
-    };
-
-
     function Validate(val) {
       if(isNaN(val) || val<=0) val = 1;
       if(val < SCALE_MIN) val = SCALE_MIN;
@@ -212,15 +142,6 @@
 
 //------------------------------------------------//
 ]]></script>
-
-
-  <popupset id="mainPopupSet">
-    <menupopup id="zoomlabel-UI2" position="after_start">
-      <menuitem id="zoomlabel-UI3" />
-      <menuitem id="zoomlabel-UI4" />
-    </menupopup>
-  </popupset>
-
 
   <toolbarpalette id="BrowserToolbarPalette">
     <toolbaritem id="zoomlabel-UI0" title="Zoom Label" class="chromeclass-toolbar-additional">

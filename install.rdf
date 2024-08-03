@@ -3,7 +3,7 @@
   <Description about="urn:mozilla:install-manifest">
     <em:id>{5f6f24e5-f362-4416-92b5-b48de5ccee36}</em:id>
     <em:name>SeaMonkey Zoom Control</em:name>
-    <em:version>1.0</em:version>
+    <em:version>1.0.1</em:version>
     <em:type>2</em:type>
     <em:creator>길고 (Original by OM)</em:creator>
     <em:contributor>OM</em:contributor>
